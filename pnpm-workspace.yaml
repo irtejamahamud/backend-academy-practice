@@ -1,0 +1,18 @@
+packages:
+  - apps/*
+  - packages/*
+
+# Packages permitted to run install scripts (native builds, engine downloads).
+allowBuilds:
+  "@nestjs/core": true
+  "@prisma/engines": true
+  "@scarf/scarf": false
+  "@swc/core": true
+  argon2: true
+  esbuild: true
+  prisma: true
+  sharp: true
+  unrs-resolver: true
+
+minimumReleaseAgeExclude:
+  - lucide-react@1.79.0

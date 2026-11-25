@@ -1,0 +1,26 @@
+{
+  "name": "backend-academy",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@11.10.0",
+  "engines": { "node": ">=22.12" },
+  "scripts": {
+    "dev": "pnpm --filter @academy/shared build && pnpm -r --parallel --filter './apps/*' --filter @academy/shared dev",
+    "build": "pnpm -r build",
+    "typecheck": "pnpm -r typecheck",
+    "lint": "eslint .",
+    "test": "pnpm -r test",
+    "format": "prettier --write .",
+    "db:migrate": "pnpm --filter @academy/api db:migrate",
+    "db:seed": "pnpm --filter @academy/api db:seed"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.0",
+    "eslint": "^9.39.0",
+    "eslint-config-prettier": "^10.1.8",
+    "globals": "^16.5.0",
+    "prettier": "^3.6.2",
+    "typescript": "5.9.3",
+    "typescript-eslint": "^8.46.0"
+  }
+}

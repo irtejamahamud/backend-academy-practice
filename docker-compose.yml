@@ -1,0 +1,62 @@
+# Local development stack.
+#   docker compose up -d postgres redis mailpit   # just the dependencies
+#   docker compose up --build                     # everything
+name: backend-academy
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: academy
+      POSTGRES_PASSWORD: academy
+      POSTGRES_DB: backend_academy
+    ports: ["5433:5432"]
+    volumes: [pgdata:/var/lib/postgresql/data]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U academy -d backend_academy"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  # Used from Phase 2 onwards (caching, rate-limit storage, BullMQ).
+  redis:
+    image: redis:7-alpine
+    ports: ["6379:6379"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  # Catches all outgoing email. Web UI: http://localhost:8025
+  mailpit:
+    image: axllent/mailpit:latest
+    ports: ["1025:1025", "8025:8025"]
+
+  api:
+    build: { context: ., dockerfile: apps/api/Dockerfile }
+    depends_on:
+      postgres: { condition: service_healthy }
+      mailpit: { condition: service_started }
+    environment:
+      NODE_ENV: production
+      PORT: 4000
+      LOG_LEVEL: info
+      DATABASE_URL: postgresql://academy:academy@postgres:5432/backend_academy
+      WEB_ORIGIN: http://localhost:3000
+      JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET:-local-compose-secret-change-me-0123456789abcdef}
+      COOKIE_SECURE: "false" # served over plain http locally
+      TRUST_PROXY: "true"
+      SMTP_URL: smtp://mailpit:1025
+      SWAGGER_ENABLED: "true"
+    ports: ["4000:4000"]
+
+  web:
+    build: { context: ., dockerfile: apps/web/Dockerfile }
+    depends_on: [api]
+    environment:
+      API_INTERNAL_URL: http://api:4000
+    ports: ["3000:3000"]
+
+volumes:
+  pgdata:
